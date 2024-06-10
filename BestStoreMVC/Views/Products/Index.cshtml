@@ -1,0 +1,116 @@
+﻿@using Microsoft.AspNetCore.Html
+@model List<Product>
+@{
+    int pageIndex = (int)ViewData["PageIndex"]!;
+    int totalPages = (int)ViewData["TotalPages"]!;
+
+    string search = (string)ViewData["Search"]!;
+
+    string column = (string)ViewData["Column"]!;
+    string orderBy = (string)ViewData["OrderBy"]!;
+
+    HtmlString getArrow(string tableColumn)
+    {
+        if (tableColumn != column) return new HtmlString("");
+
+        if (orderBy == "desc")
+        {
+            return new HtmlString("<i class='bi bi-arrow-down'></i>");
+        }
+        return new HtmlString("<i class='bi bi-arrow-up'></i>");
+    }
+}
+
+@*THis line displays the content in center with a margin button of 5 units*@
+<h2 class="text-center mb-5">List of Products</h2>
+
+
+
+@*THis line adds a button that allows us to create a new product*@
+<div class="row mb-5">
+    <div class="col">              @*      These are tag helpers              *@
+                                   @*|     They are used instead of href attribute  |*@
+        <a class="btn btn-primary" asp-controller="Products" asp-action="Create">New Product</a>
+        @*Whe we click on 'New Product' we will execute the 'Create' action of the 'Products' controller*@
+    </div>
+    <div class="col">
+        <form class="d-flex" role="search">
+            <input class="form-control me-2" type="search" name="search" value="@search" placeholder="Search by Name or Brand" aria-label="Search" />
+            <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function sortTable(column) { 
+        let orderBy = "desc"
+        let currentColumn = "@column";
+        let currentOrder = "@orderBy";
+
+        if (column === currentColumn) {
+            if (currentOrder == "asc") {
+                orderBy = "desc";
+            }
+            else {
+                orderBy = "asc";
+            }
+        }
+        window.location.href="?search=@(search)&column=" + column + "&orderBy=" + orderBy
+    }
+</script>
+
+@*This line create a table*@
+<table class="table">
+    <thead>
+        
+        <tr>
+            @*We have six columns to display the product display*@
+
+            <th style="cursor: pointer;" onclik="sortTable('Id')">ID @getArrow("Id")</th>       @*1*@
+            <th style="cursor: pointer;" onclick="sortTable('Name')">Name @getArrow("Name")</th>     @*2*@
+            <th style="cursor: pointer;" onclick="sortTable('Brand')">Brand @getArrow("Brand")</th>    @*3*@
+            <th style="cursor: pointer;" onclick="sortTable('Category')">Category @getArrow("Category")</th> @*4*@
+            <th style="cursor: pointer;" onclick="sortTable('Price')">Price @getArrow("Price")</th>   @*5*@
+            <th>Image</th>    
+            <th style="cursor: pointer;" onclick="sortTable('CreatedAt')">Created At @getArrow("CreatedAt")</th>  @*6*@
+            <th>Action</th>      @*This column will display two buttons, one for edit and the second for delete*@
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var product in Model) @*Our 'Model' is a list of Product objects (List<Product>)*@
+        {
+            @*For every 'product' in the 'Model' we will create a table row*@
+            <tr>
+                <td>@product.Id</td>
+                <td>@product.Name</td>
+                <td>@product.Brand</td>
+                <td>@product.Category</td>
+                <td>@(product.Price)$</td>
+                <td><img src="/products/@product.ImageFileName" width="100" /></td>
+                <td>@product.CreatedAt.ToString("MM/dd/yyyy")</td>
+                <td style="white-space:nowrap">
+                    @*Whe we click on the 'Edit' button we will execute the 'Edit' action of the 'Products' controller*@
+                    <a class="btn btn-primary btn-sm" asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id">Edit</a>
+                    <a class="btn btn-danger btn-sm" asp-controller="Products" asp-action="Delete" asp-route-id="@product.Id">Delete</a>
+                </td>
+            </tr>
+            
+        }
+    </tbody>
+</table>
+<nav >
+    <ul class="pagination">
+        @for(int i = 1; i <= totalPages; i++)
+        {
+            string active = "";
+            if (i == pageIndex)
+            {
+                active = "active";
+            }
+            <li class="page-item @active"><a class="page-link" asp-route-pageIndex="@i"
+                asp-route-search="@search" asp-route-column="@column" asp-route-orderBy="@orderBy">@i</a></li>
+        }
+    </ul>
+</nav>
